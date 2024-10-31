@@ -1,0 +1,12 @@
+{
+  "name": "webpage",
+  "version": "1.0.0",
+  "scripts": {
+    "build-css": "npx tailwindcss -i ./static/css/styles.css -o ./static/css/output.css --minify",
+    "watch-css": "npx tailwindcss -i ./static/css/styles.css -o ./static/css/output.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.14"
+  }
+}
+

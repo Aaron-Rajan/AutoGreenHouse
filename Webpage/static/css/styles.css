@@ -1,0 +1,34 @@
+/* static/css/styles.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Styles */
+body {
+    background-color: theme('colors.background');
+}
+
+h1 {
+    @apply text-3xl font-bold text-primary mb-6;
+}
+
+.card {
+    @apply bg-cardBackground border border-cardBorder rounded-lg shadow-lg p-6 transition-all hover:shadow-xl hover:border-primary;
+}
+
+.card h2 {
+    @apply text-2xl font-semibold text-primary;
+}
+
+.card p {
+    @apply text-lg text-textPrimary;
+}
+
+.card small {
+    @apply text-sm text-textSecondary;
+}
+
+/* Button styles */
+button {
+    @apply bg-primary text-white font-bold py-2 px-4 rounded hover:bg-secondary transition-all duration-300;
+}

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sensor Data Dashboard</title>
+    <!-- Link to the Tailwind CSS output file -->
+    <link href="{{ url_for('static', filename='css/output.css') }}" rel="stylesheet">
+</head>
+<body class="bg-background min-h-screen flex items-center justify-center">
+
+    <!-- Sensor Data Container -->
+    <div class="container mx-auto p-8 bg-white rounded-lg shadow-xl">
+        <h1 class="text-3xl font-bold text-primary mb-6">Sensor Data Dashboard</h1>
+
+        <!-- Button to refresh or interact with the data -->
+        <div class="mb-4">
+            <button class="bg-primary text-white font-bold py-2 px-4 rounded hover:bg-secondary transition-all duration-300">
+                Refresh Data
+            </button>
+        </div>
+
+        <!-- Sensor Data Display Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for sensor in sensor_data %}
+            <div class="card">
+                <h2>{{ sensor.type }}</h2>
+                <p>Value: {{ sensor.value }}</p>
+                <small>Last Updated: {{ sensor.timestamp }}</small>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</body>
+</html>
