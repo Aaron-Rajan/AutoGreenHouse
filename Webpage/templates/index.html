@@ -6,7 +6,16 @@
     <!-- Link to the Tailwind CSS output file -->
     <link href="{{ url_for('static', filename='css/output.css') }}" rel="stylesheet">
 </head>
-<body class="bg-background min-h-screen flex items-center justify-center">
+<body class="bg-background min-h-screen relative">
+
+    <!-- Connection Status Text in the Top-Right Corner -->
+    <div class="absolute top-4 right-4 px-status-padding">
+        {% if connected %}
+            <span class="text-connected text-status font-status rounded bg-green-100 px-status-padding">Connected</span>
+        {% else %}
+            <span class="text-disconnected text-status font-status rounded bg-red-100 px-status-padding">Disconnected</span>
+        {% endif %}
+    </div>
 
     <!-- Sensor Data Container -->
     <div class="container mx-auto p-8 bg-white rounded-lg shadow-xl">
