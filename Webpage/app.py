@@ -1,9 +1,24 @@
 from flask import Flask, render_template
+from flask_sqlalchemy import SQLAlchemy
 import serial
 import time
 
 app = Flask(__name__)
 
+# AWS RDS MySQL Database Configuration
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:400321812@ssigdata.czcwce6iiq8v.ca-central-1.rds.amazonaws.com/ssigdata'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
+
+# Define Database Model for Sensor Data
+class SensorData(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    sensor_type = db.Column(db.String(50), nullable=False)
+    value = db.Column(db.String(50), nullable=False)
+    timestamp = db.Column(db.String(50), nullable=False)
+
+# Function to Check Microcontroller Connection
 def is_microcontroller_connected(port, baud_rate=9600, timeout=1):
     try:
         ser = serial.Serial(port, baud_rate, timeout=timeout)
@@ -17,17 +32,15 @@ def is_microcontroller_connected(port, baud_rate=9600, timeout=1):
         return False
     except serial.SerialException:
         return False
-    
+
 @app.route('/')
 def index():
     port = 'COM3'  # Update with the correct port
     connected = is_microcontroller_connected(port)
-    # Actual sensor data should be here
-    sensor_data = [
-        {'id': 1, 'type': 'Temperature', 'value': '22°C', 'timestamp': '2024-10-21 14:30'},
-        {'id': 2, 'type': 'Humidity', 'value': '55%', 'timestamp': '2024-10-21 14:31'},
-        {'id': 3, 'type': 'Air Quality', 'value': 'Good', 'timestamp': '2024-10-21 14:32'}
-    ]
+
+    # Fetching sensor data from AWS RDS MySQL
+    sensor_data = SensorData.query.order_by(SensorData.timestamp.desc()).limit(10).all()  # Get latest 10 readings
+
     return render_template("index.html", connected=connected, sensor_data=sensor_data)
 
 if __name__ == '__main__':
