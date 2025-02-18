@@ -2,42 +2,47 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sensor Data Dashboard</title>
-    <!-- Link to the Tailwind CSS output file -->
     <link href="{{ url_for('static', filename='css/output.css') }}" rel="stylesheet">
 </head>
-<body class="bg-background min-h-screen relative">
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center">
 
-    <!-- Connection Status Text in the Top-Right Corner -->
-    <div class="absolute top-4 right-4 px-status-padding">
+    <!-- Connection Status (Top-Right Corner) -->
+    <div class="absolute top-4 right-4">
         {% if connected %}
-            <span class="text-connected text-status font-status rounded bg-green-100 px-status-padding">Connected</span>
+            <span class="bg-green-100 text-green-700 font-medium px-3 py-1 rounded-md">🟢 Connected</span>
         {% else %}
-            <span class="text-disconnected text-status font-status rounded bg-red-100 px-status-padding">Disconnected</span>
+            <span class="bg-red-100 text-red-700 font-medium px-3 py-1 rounded-md">🔴 Disconnected</span>
         {% endif %}
     </div>
 
-    <!-- Sensor Data Container -->
-    <div class="container mx-auto p-8 bg-white rounded-lg shadow-xl">
-        <h1 class="text-3xl font-bold text-primary mb-6">Sensor Data Dashboard</h1>
+    <!-- Main Sensor Data Container -->
+    <div class="w-11/12 max-w-4xl bg-white p-6 rounded-lg shadow-lg mt-6">
+        <h1 class="text-3xl font-bold text-gray-800 text-center mb-4">📊 Sensor Data Dashboard</h1>
 
-        <!-- Button to refresh or interact with the data -->
-        <div class="mb-4">
-            <button class="bg-primary text-white font-bold py-2 px-4 rounded hover:bg-secondary transition-all duration-300">
-                Refresh Data
+        <!-- Refresh Button -->
+        <div class="text-center mb-4">
+            <button onclick="location.reload()" 
+                class="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-300">
+                🔄 Refresh Data
             </button>
         </div>
 
-        <!-- Sensor Data Display Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Sensor Data Display -->
+        {% if sensor_data %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             {% for sensor in sensor_data %}
-            <div class="card">
-                <h2>{{ sensor.type }}</h2>
-                <p>Value: {{ sensor.value }}</p>
-                <small>Last Updated: {{ sensor.timestamp }}</small>
+            <div class="bg-gray-50 p-4 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold text-gray-700">{{ sensor.sensor_type | title }}</h2>
+                <p class="text-gray-600 mt-1">📡 Value: <span class="font-bold">{{ sensor.value }}</span></p>
+                <p class="text-gray-500 text-sm mt-1">⏳ Last Updated: {{ sensor.timestamp }}</p>
             </div>
             {% endfor %}
         </div>
+        {% else %}
+        <p class="text-center text-gray-500 mt-4">⚠ No sensor data available.</p>
+        {% endif %}
     </div>
 
 </body>
