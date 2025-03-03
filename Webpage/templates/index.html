@@ -32,14 +32,42 @@
         <!-- Sensor Data Display -->
         {% if sensor_data %}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {% for sensor in sensor_data %}
             <div class="bg-gray-50 p-4 rounded-lg shadow-md">
-                <h2 class="text-xl font-semibold text-gray-700">{{ sensor.sensor_type | title }}</h2>
-                <p class="text-gray-600 mt-1">📡 Value: <span class="font-bold">{{ sensor.value }}</span></p>
-                <p class="text-gray-500 text-sm mt-1">⏳ Last Updated: {{ sensor.timestamp }}</p>
+                <h2 class="text-xl font-semibold text-gray-700">🌡 Temperature</h2>
+                <p class="text-gray-600 mt-1">📡 Value: <span class="font-bold">{{ sensor_data.temperature }}°C</span></p>
             </div>
-            {% endfor %}
+
+            <div class="bg-gray-50 p-4 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold text-gray-700">💦 Humidity</h2>
+                <p class="text-gray-600 mt-1">📡 Value: <span class="font-bold">{{ sensor_data.humidity }}%</span></p>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold text-gray-700">☁ CO2</h2>
+                <p class="text-gray-600 mt-1">📡 Value: <span class="font-bold">{{ sensor_data.co2 }} ppm</span></p>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold text-gray-700">🛢 TVOC</h2>
+                <p class="text-gray-600 mt-1">📡 Value: <span class="font-bold">{{ sensor_data.tvoc }} ppb</span></p>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold text-gray-700">🌊 Moisture</h2>
+                <p class="text-gray-600 mt-1">📡 Value: <span class="font-bold">{{ sensor_data.moisture }}%</span></p>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold text-gray-700">⚗ pH Level</h2>
+                <p class="text-gray-600 mt-1">📡 Value: <span class="font-bold">{{ sensor_data.pH }}</span></p>
+            </div>
+
         </div>
+
+        <div class="text-center mt-4 text-gray-500">
+            <p>⏳ Last Updated: <strong>{{ sensor_data.timestamp }}</strong></p>
+        </div>
+
         {% else %}
         <p class="text-center text-gray-500 mt-4">⚠ No sensor data available.</p>
         {% endif %}
