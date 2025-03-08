@@ -20,6 +20,7 @@ The **Self-Sustaining Intelligent Greenhouse (SSIG)** is an automated system des
 ## 📂 Project Structure
 ```
 AutoGreenHouse/
+│── Arduino/
 │── Webpage/
 │   │── static/
 │   │── templates/
