@@ -1,7 +1,7 @@
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, send_file
 from flask_sqlalchemy import SQLAlchemy
-import serial
-import time
+import io
+from PIL import Image
 
 app = Flask(__name__)
 
@@ -19,8 +19,7 @@ db = SQLAlchemy(app)
 
 # Define Database Model for Sensor Data
 class SensorData(db.Model):
-    __tablename__ = 'ssig_sensor_data'  # Ensure correct table mapping
-
+    __tablename__ = 'ssig_sensor_data'
     id = db.Column(db.Integer, primary_key=True)
     co2 = db.Column(db.Integer, nullable=True)
     tvoc = db.Column(db.Integer, nullable=True)
@@ -30,50 +29,45 @@ class SensorData(db.Model):
     pH = db.Column(db.Float, nullable=True)
     timestamp = db.Column(db.TIMESTAMP, server_default=db.func.current_timestamp(), nullable=False)
 
-# Homepage Route (Displays Latest Sensor Data)
+# Define Database Model for Images
+class ImageData(db.Model):
+    __tablename__ = 'images'
+    id = db.Column(db.Integer, primary_key=True)
+    image = db.Column(db.LargeBinary, nullable=False)  # BLOB storage for image data
+
+# Route to fetch and display image
+@app.route('/image/<int:image_id>')
+def get_image(image_id):
+    try:
+        image_data = db.session.query(ImageData).filter_by(id=image_id).first()
+        if not image_data:
+            return "❌ Image not found", 404
+        
+        # Convert BLOB to an image and send as response
+        return send_file(io.BytesIO(image_data.image), mimetype='image/jpeg')
+    except Exception as e:
+        return f"❌ Error retrieving image: {str(e)}", 500
+
+# Homepage Route (Displays Latest Sensor Data and Image)
 @app.route('/')
 def index():
     try:
         connected = True
 
-        # Fetch the most recent row based on timestamp
+        # Fetch the most recent sensor data
         latest_sensor_data = db.session.query(SensorData).order_by(SensorData.timestamp.desc()).first()
+
+        # Fetch the latest image (if available)
+        latest_image = db.session.query(ImageData).order_by(ImageData.id.desc()).first()
+        image_url = f"/image/{latest_image.id}" if latest_image else None
 
         if not latest_sensor_data:
             message = "⚠ No sensor data available in the database."
-            return render_template("index.html", message=message, sensor_data=None)
+            return render_template("index.html", message=message, sensor_data=None, image_url=image_url)
 
-        # Pass single sensor_data object (not a list)
-        return render_template("index.html", connected=connected, sensor_data=latest_sensor_data)
-
+        return render_template("index.html", connected=connected, sensor_data=latest_sensor_data, image_url=image_url)
     except Exception as e:
         return f"❌ Error retrieving data: {str(e)}"
-
-# API Route to Get Latest Sensor Data (Most Recent Row)
-@app.route('/api/sensor', methods=['GET'])
-def get_latest_sensor_data():
-    try:
-        # Fetch the most recent row based on timestamp
-        latest_sensor_data = db.session.query(SensorData).order_by(SensorData.timestamp.desc()).first()
-
-        if not latest_sensor_data:
-            return jsonify({"error": "No sensor data found"}), 404
-
-        data = {
-            "id": latest_sensor_data.id,
-            "co2": latest_sensor_data.co2,
-            "tvoc": latest_sensor_data.tvoc,
-            "moisture": latest_sensor_data.moisture,
-            "temperature": latest_sensor_data.temperature,
-            "humidity": latest_sensor_data.humidity,
-            "pH": latest_sensor_data.pH,
-            "timestamp": latest_sensor_data.timestamp.strftime("%Y-%m-%d %H:%M:%S")
-        }
-
-        return jsonify(data), 200
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000, debug=True)
