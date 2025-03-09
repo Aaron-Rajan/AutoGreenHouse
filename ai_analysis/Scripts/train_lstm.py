@@ -38,10 +38,10 @@ history = model.fit(
 )
 
 # Save final model
-model.save("../models/lstm_greenhouse_model.h5")
+model.save("../models/lstm_greenhouse_model.keras")
 
 # Save training history for analysis
 with open("../models/training_history.json", "w") as f:
     json.dump(history.history, f)
 
-print("Model training complete. Best model saved as 'best_lstm_model.h5'.")
+print("Model training complete. Best model saved as 'best_lstm_model.keras'.")

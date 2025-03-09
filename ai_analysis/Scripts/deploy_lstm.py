@@ -4,7 +4,7 @@ from tensorflow.keras.models import load_model
 from data_preprocessing import load_and_preprocess_data
 
 # Load trained LSTM model
-model = load_model("../models/lstm_greenhouse_model.h5")
+model = load_model("../models/lstm_greenhouse_model.keras")
 
 # Function to simulate live sensor data
 # def get_live_sensor_data():
