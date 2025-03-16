@@ -77,6 +77,27 @@ def display_data():
         return render_template("data.html", sensor_data=all_sensor_data)
     except Exception as e:
         return f"❌ Error retrieving data: {str(e)}"
+    
+@app.route('/get_data', methods=['GET'])
+def get_data():
+    try:
+        # Fetch the latest sensor data row
+        latest_row = db.session.query(SensorData).order_by(SensorData.timestamp.desc()).first()
+
+        # Return as JSON
+        return jsonify({
+            "id": latest_row.id,
+            "co2": latest_row.co2,
+            "tvoc": latest_row.tvoc,
+            "moisture": latest_row.moisture,
+            "temperature": latest_row.temperature,
+            "humidity": latest_row.humidity,
+            "pH": latest_row.pH,
+            "timestamp": latest_row.timestamp
+        }) if latest_row else jsonify({"error": "No data available"})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000, debug=True)
