@@ -68,21 +68,6 @@ def index():
         return render_template("index.html", connected=connected, sensor_data=latest_sensor_data, image_url=image_url)
     except Exception as e:
         return f"❌ Error retrieving data: {str(e)}"
-    
-@app.route('/upload', methods=['POST'])
-def upload_data():
-    data = request.json  # Receive JSON data from ESP32
-    cursor = mysql_db.cursor()
-    
-    sql = """INSERT INTO ssig_sensor_data (co2, tvoc, moisture, pH, temperature, humidity) 
-             VALUES (%s, %s, %s, %s, %s, %s)"""
-    values = (data["co2"], data["tvoc"], data["moisture"], data["pH"], data["temperature"], data["humidity"])
-    
-    cursor.execute(sql, values)
-    mysql_db.commit()
-    cursor.close()
-    
-    return jsonify({"message": "Sensor data stored successfully!"}), 201
 
 @app.route('/upload_image', methods=['POST'])
 def upload_image():
