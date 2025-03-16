@@ -21,12 +21,20 @@
     <div class="w-11/12 max-w-4xl bg-white p-6 rounded-lg shadow-lg mt-6">
         <h1 class="text-3xl font-bold text-gray-800 text-center mb-4">📊 Sensor Data Dashboard</h1>
 
-        <!-- Refresh Button -->
-        <div class="text-center mb-4">
+        <!-- Refresh & View Data Buttons (Aligned) -->
+        <div class="flex justify-center space-x-4 mb-4">
+            <!-- Refresh Data Button -->
             <button onclick="location.reload()" 
                 class="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-300">
                 🔄 Refresh Data
             </button>
+
+            <!-- View All Data Button -->
+            <a href="/data" 
+                class="bg-green-600 text-black text-lg font-semibold py-2 px-6 rounded-lg 
+                       hover:bg-green-700 transition duration-300 shadow-md">
+                📋 View Complete Sensor Data History
+            </a>
         </div>
 
         <!-- Sensor Data Display -->

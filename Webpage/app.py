@@ -69,5 +69,14 @@ def index():
     except Exception as e:
         return f"❌ Error retrieving data: {str(e)}"
 
+# Route to display all collected sensor data in a table
+@app.route('/data')
+def display_data():
+    try:
+        all_sensor_data = db.session.query(SensorData).order_by(SensorData.timestamp.desc()).all()
+        return render_template("data.html", sensor_data=all_sensor_data)
+    except Exception as e:
+        return f"❌ Error retrieving data: {str(e)}"
+
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000, debug=True)

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Sensor Data History</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center p-6">
+
+    <!-- Header Section -->
+    <div class="w-full max-w-6xl bg-white p-6 rounded-lg shadow-md text-center">
+        <h1 class="text-3xl font-bold text-gray-800">📋 Complete Sensor Data History</h1>
+        <p class="text-gray-600 mt-2">View all recorded sensor data entries in a structured table format.</p>
+    </div>
+
+    <!-- Back to Dashboard Button -->
+    <a href="/" 
+        class="mt-4 inline-block bg-blue-600 text-white text-lg font-semibold py-3 px-8 rounded-lg 
+               hover:bg-blue-700 transition duration-300 shadow-md">
+        ⬅ Back to Dashboard
+    </a>
+
+    <!-- Data Table -->
+    <div class="w-full max-w-6xl overflow-x-auto bg-white p-6 rounded-lg shadow-md mt-6">
+        <table class="w-full border-collapse border border-gray-300">
+            <thead class="bg-blue-500 text-white">
+                <tr>
+                    <th class="border border-gray-300 px-4 py-2">ID</th>
+                    <th class="border border-gray-300 px-4 py-2">CO2 (ppm)</th>
+                    <th class="border border-gray-300 px-4 py-2">TVOC (ppb)</th>
+                    <th class="border border-gray-300 px-4 py-2">Moisture (%)</th>
+                    <th class="border border-gray-300 px-4 py-2">Temperature (°C)</th>
+                    <th class="border border-gray-300 px-4 py-2">Humidity (%)</th>
+                    <th class="border border-gray-300 px-4 py-2">pH Level</th>
+                    <th class="border border-gray-300 px-4 py-2">Timestamp</th>
+                </tr>
+            </thead>
+            <tbody class="bg-gray-50">
+                {% for data in sensor_data %}
+                <tr class="hover:bg-gray-200 transition">
+                    <td class="border border-gray-300 px-4 py-2 text-center">{{ data.id }}</td>
+                    <td class="border border-gray-300 px-4 py-2 text-center">{{ data.co2 }}</td>
+                    <td class="border border-gray-300 px-4 py-2 text-center">{{ data.tvoc }}</td>
+                    <td class="border border-gray-300 px-4 py-2 text-center">{{ data.moisture }}</td>
+                    <td class="border border-gray-300 px-4 py-2 text-center">{{ data.temperature }}</td>
+                    <td class="border border-gray-300 px-4 py-2 text-center">{{ data.humidity }}</td>
+                    <td class="border border-gray-300 px-4 py-2 text-center">{{ data.pH }}</td>
+                    <td class="border border-gray-300 px-4 py-2 text-center">{{ data.timestamp }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</body>
+</html>
