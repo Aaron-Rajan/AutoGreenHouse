@@ -69,25 +69,6 @@ def index():
     except Exception as e:
         return f"❌ Error retrieving data: {str(e)}"
 
-@app.route('/upload_image', methods=['POST'])
-def upload_image():
-    try:
-        image_data = request.data  # Get raw image data
-        
-        if not image_data:
-            return jsonify({"error": "No image received"}), 400
-
-        cursor = mysql_db.cursor()
-        sql = "INSERT INTO images (image) VALUES (%s)"
-        cursor.execute(sql, (image_data,))
-        mysql_db.commit()
-        cursor.close()
-
-        return jsonify({"message": "Image uploaded successfully"}), 200
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
 # Route to display all collected sensor data in a table
 @app.route('/data')
 def display_data():
