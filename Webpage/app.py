@@ -1,7 +1,6 @@
 from flask import Flask, render_template, jsonify, request, send_file, render_template_string
 from flask_sqlalchemy import SQLAlchemy
 import io
-import mysql.connector
 from PIL import Image
 
 app = Flask(__name__)
@@ -17,15 +16,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize database
 db = SQLAlchemy(app)
-
-#Database connection for direct queries
-mysql_db = mysql.connector.connect(
-    host="ssigdata.czcwce6iiq8v.ca-central-1.rds.amazonaws.com",
-    user="admin",
-    password="400321812",
-    database="ssigdata",
-    autocommit=True
-)
 
 # Define Database Model for Sensor Data
 class SensorData(db.Model):
