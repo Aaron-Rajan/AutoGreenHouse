@@ -2,7 +2,6 @@ from flask import Flask, render_template, jsonify, request, send_file, render_te
 from flask_sqlalchemy import SQLAlchemy
 import io
 import mysql.connector
-import requests
 from PIL import Image
 
 app = Flask(__name__)
