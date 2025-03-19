@@ -28,7 +28,7 @@
                 class="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-300">
                 🔄 Refresh Data
             </button>
-
+        
             <!-- View All Data Button -->
             <a href="/data" 
                 class="bg-green-600 text-black text-lg font-semibold py-2 px-6 rounded-lg 
@@ -36,6 +36,26 @@
                 📋 View Complete Sensor Data History
             </a>
         </div>
+        
+        <!-- ✅ Add manual capture button here -->
+        <div class="flex justify-center mb-6">
+            <button onclick="triggerManualCapture()"
+                class="bg-yellow-500 text-black text-lg font-semibold py-2 px-6 rounded-lg 
+                       hover:bg-yellow-600 transition duration-300 shadow-md">
+                📸 Take Picture
+            </button>
+        </div>
+        
+        <script>
+            function triggerManualCapture() {
+                fetch('/trigger_capture', { method: 'POST' })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert(data.message || data.error);
+                    })
+                    .catch(error => alert('Error: ' + error));
+            }
+        </script>
 
         <!-- Sensor Data Display -->
         {% if sensor_data %}
