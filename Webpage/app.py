@@ -44,6 +44,26 @@ class CaptureFlag(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     capture_trigger = db.Column(db.Boolean, default=False)
 
+class WaterPumpFlag(db.Model):
+    __tablename__ = 'water_pump_flags'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    water_pump_trigger = db.Column(db.Boolean, default=False)
+
+class AcidPumpFlag(db.Model):
+    __tablename__ = 'acid_pump_flags'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    acid_pump_trigger = db.Column(db.Boolean, default=False)
+
+class BasePumpFlag(db.Model):
+    __tablename__ = 'base_pump_flags'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    base_pump_trigger = db.Column(db.Boolean, default=False)
+
+class ExhaustFanFlag(db.Model):
+    __tablename__ = 'exhaust_fan_flags'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    exhaust_fan_trigger = db.Column(db.Boolean, default=False)
+
 # Define Database Model for Images
 class ImageData(db.Model):
     __tablename__ = 'images'
@@ -177,6 +197,86 @@ def should_capture():
         return jsonify({"capture": False})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@app.route('/trigger_water_pump', methods=['POST'])
+def trigger_water_pump():
+    flag = WaterPumpFlag.query.first()
+    if not flag:
+        flag = WaterPumpFlag(water_pump_trigger=True)
+        db.session.add(flag)
+    else:
+        flag.water_pump_trigger = True
+    db.session.commit()
+    return jsonify({"message": "Water pump trigger set!"}), 200
+
+@app.route('/trigger_acid_pump', methods=['POST'])
+def trigger_acid_pump():
+    flag = AcidPumpFlag.query.first()
+    if not flag:
+        flag = AcidPumpFlag(acid_pump_trigger=True)
+        db.session.add(flag)
+    else:
+        flag.acid_pump_trigger = True
+    db.session.commit()
+    return jsonify({"message": "Acid pump trigger set!"}), 200
+
+@app.route('/trigger_base_pump', methods=['POST'])
+def trigger_base_pump():
+    flag = BasePumpFlag.query.first()
+    if not flag:
+        flag = BasePumpFlag(base_pump_trigger=True)
+        db.session.add(flag)
+    else:
+        flag.base_pump_trigger = True
+    db.session.commit()
+    return jsonify({"message": "Base pump trigger set!"}), 200
+
+@app.route('/trigger_exhaust_fan', methods=['POST'])
+def trigger_exhaust_fan():
+    flag = ExhaustFanFlag.query.first()
+    if not flag:
+        flag = ExhaustFanFlag(exhaust_fan_trigger=True)
+        db.session.add(flag)
+    else:
+        flag.exhaust_fan_trigger = True
+    db.session.commit()
+    return jsonify({"message": "Exhaust fan trigger set!"}), 200
+
+@app.route('/should_trigger_water_pump', methods=['GET'])
+def should_trigger_water_pump():
+    flag = WaterPumpFlag.query.first()
+    if flag and flag.water_pump_trigger:
+        flag.water_pump_trigger = False
+        db.session.commit()
+        return jsonify({"trigger": True})
+    return jsonify({"trigger": False})
+
+@app.route('/should_trigger_acid_pump', methods=['GET'])
+def should_trigger_acid_pump():
+    flag = AcidPumpFlag.query.first()
+    if flag and flag.acid_pump_trigger:
+        flag.acid_pump_trigger = False
+        db.session.commit()
+        return jsonify({"trigger": True})
+    return jsonify({"trigger": False})
+
+@app.route('/should_trigger_base_pump', methods=['GET'])
+def should_trigger_base_pump():
+    flag = BasePumpFlag.query.first()
+    if flag and flag.base_pump_trigger:
+        flag.base_pump_trigger = False
+        db.session.commit()
+        return jsonify({"trigger": True})
+    return jsonify({"trigger": False})
+
+@app.route('/should_trigger_exhaust_fan', methods=['GET'])
+def should_trigger_exhaust_fan():
+    flag = ExhaustFanFlag.query.first()
+    if flag and flag.exhaust_fan_trigger:
+        flag.exhaust_fan_trigger = False
+        db.session.commit()
+        return jsonify({"trigger": True})
+    return jsonify({"trigger": False})
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000, debug=True)
