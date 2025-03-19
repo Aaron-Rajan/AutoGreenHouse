@@ -1,6 +1,8 @@
 from flask import Flask, render_template, jsonify, request, send_file, render_template_string
 from flask_sqlalchemy import SQLAlchemy
 import io
+import mysql.connector
+import requests
 from PIL import Image
 
 app = Flask(__name__)
@@ -17,6 +19,15 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Initialize database
 db = SQLAlchemy(app)
 
+#Database connection for direct queries
+mysql_db = mysql.connector.connect(
+    host="ssigdata.czcwce6iiq8v.ca-central-1.rds.amazonaws.com",
+    user="admin",
+    password="400321812",
+    database="ssigdata",
+    autocommit=True
+)
+
 # Define Database Model for Sensor Data
 class SensorData(db.Model):
     __tablename__ = 'ssig_sensor_data'
@@ -28,6 +39,11 @@ class SensorData(db.Model):
     humidity = db.Column(db.Float, nullable=True)
     pH = db.Column(db.Float, nullable=True)
     timestamp = db.Column(db.TIMESTAMP, server_default=db.func.current_timestamp(), nullable=False)
+
+class CaptureFlag(db.Model):
+    __tablename__ = 'capture_flags'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    capture_trigger = db.Column(db.Boolean, default=False)
 
 # Define Database Model for Images
 class ImageData(db.Model):
@@ -68,7 +84,7 @@ def index():
         return render_template("index.html", connected=connected, sensor_data=latest_sensor_data, image_url=image_url)
     except Exception as e:
         return f"❌ Error retrieving data: {str(e)}"
-
+    
 # Route to display all collected sensor data in a table
 @app.route('/data')
 def display_data():
@@ -96,6 +112,70 @@ def get_data():
             "timestamp": latest_row.timestamp
         }) if latest_row else jsonify({"error": "No data available"})
 
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route('/upload', methods=['POST'])
+def upload_data():
+    data = request.json  # Receive JSON data from ESP32
+    cursor = mysql_db.cursor()
+    
+    sql = """INSERT INTO ssig_sensor_data (co2, tvoc, moisture, pH, temperature, humidity) 
+             VALUES (%s, %s, %s, %s, %s, %s)"""
+    values = (data["co2"], data["tvoc"], data["moisture"], data["pH"], data["temperature"], data["humidity"])
+    
+    cursor.execute(sql, values)
+    mysql_db.commit()
+    cursor.close()
+    
+    return jsonify({"message": "Sensor data stored successfully!"}), 201
+
+@app.route('/upload_image', methods=['POST'])
+def upload_image():
+    try:
+        image_data = request.data  # Get raw image data
+        
+        if not image_data:
+            return jsonify({"error": "No image received"}), 400
+
+        cursor = mysql_db.cursor()
+        sql = "INSERT INTO images (image) VALUES (%s)"
+        cursor.execute(sql, (image_data,))
+        mysql_db.commit()
+        cursor.close()
+
+        return jsonify({"message": "Image uploaded successfully"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/trigger_capture', methods=['POST'])
+def trigger_capture():
+    try:
+        # Set trigger flag in the database
+        flag = CaptureFlag.query.first()
+        if not flag:
+            flag = CaptureFlag(trigger=True)
+            db.session.add(flag)
+        else:
+            flag.capture_trigger = True
+        db.session.commit()
+        
+        return jsonify({"message": "Capture flag set!"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route('/should_capture', methods=['GET'])
+def should_capture():
+    try:
+        flag = CaptureFlag.query.first()
+        if flag and flag.capture_trigger:
+            # Reset flag after capture
+            flag.capture_trigger = False
+            db.session.commit()
+            return jsonify({"capture": True})
+        
+        return jsonify({"capture": False})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
