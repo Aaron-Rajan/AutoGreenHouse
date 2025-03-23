@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Gallery</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center p-6">
+
+    <!-- Header Section -->
+    <div class="w-full max-w-6xl bg-white p-6 rounded-lg shadow-md text-center">
+        <h1 class="text-3xl font-bold text-gray-800">📸 Image Gallery</h1>
+        <p class="text-gray-600 mt-2">Explore all recorded images in the gallery. Click on any image to view it in full size in a new tab.</p>
+    </div>
+
+    <!-- Back to Dashboard Button -->
+    <a href="/" 
+        class="mt-6 inline-block bg-blue-600 text-white text-lg font-semibold py-3 px-8 rounded-lg 
+               hover:bg-blue-700 transition duration-300 shadow-md">
+        ⬅ Back to Dashboard
+    </a>
+
+    <!-- Image Gallery Section -->
+    <div class="w-full max-w-6xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-8">
+        {% if images %}
+            {% for image in images %}
+                <!-- Wrap each image in an anchor tag that opens in a new tab -->
+                <div class="image-container bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition duration-300">
+                    <a href="/image/{{ image.id }}" target="_blank">
+                        <img src="/image/{{ image.id }}" alt="Image {{ image.id }}" class="w-full rounded-md mb-3 cursor-pointer" />
+                    </a>
+                    <p class="text-center text-gray-500 text-sm">📅 Uploaded: {{ image.timestamp }}</p>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-center text-gray-500">No images available in the gallery.</p>
+        {% endif %}
+    </div>
+
+</body>
+</html>

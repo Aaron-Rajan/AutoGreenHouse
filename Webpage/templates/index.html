@@ -7,16 +7,6 @@
     <link href="{{ url_for('static', filename='css/output.css') }}" rel="stylesheet">
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center">
-
-    <!-- Connection Status (Top-Right Corner) -->
-    <div class="absolute top-4 right-4">
-        {% if connected %}
-            <span class="bg-green-100 text-green-700 font-medium px-3 py-1 rounded-md">🟢 Connected</span>
-        {% else %}
-            <span class="bg-red-100 text-red-700 font-medium px-3 py-1 rounded-md">🔴 Disconnected</span>
-        {% endif %}
-    </div>
-
     <!-- Main Sensor Data Container -->
     <div class="w-11/12 max-w-4xl bg-white p-6 rounded-lg shadow-lg mt-6">
         <h1 class="text-3xl font-bold text-gray-800 text-center mb-4">📊 Sensor Data Dashboard</h1>
@@ -34,6 +24,13 @@
                 class="bg-green-600 text-black text-lg font-semibold py-2 px-6 rounded-lg 
                        hover:bg-green-700 transition duration-300 shadow-md">
                 📋 View Complete Sensor Data History
+            </a>
+
+            <!-- View Gallery Button -->
+            <a href="/gallery" 
+                class="bg-purple-600 text-black text-lg font-semibold py-2 px-6 rounded-lg 
+                       hover:bg-purple-700 transition duration-300 shadow-md">
+                📸 View Image Gallery
             </a>
         </div>
         
