@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Actuator Control Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center p-6">
+
+    <!-- Header Section -->
+    <div class="w-full max-w-6xl bg-white p-6 rounded-lg shadow-md text-center">
+        <h1 class="text-3xl font-bold text-gray-800">🛠 Actuator Control Panel</h1>
+        <p class="text-gray-600 mt-2">Use the sliders below to activate actuators for Low (10s), Medium (20s), or High (30s) durations.</p>
+    </div>
+
+    <!-- Back to Dashboard Button -->
+    <a href="/" 
+        class="mt-6 inline-block bg-blue-600 text-white text-lg font-semibold py-3 px-8 rounded-lg 
+               hover:bg-blue-700 transition duration-300 shadow-md">
+        ⬅ Back to Dashboard
+    </a>
+
+    <!-- Actuator Control Section -->
+    <div class="w-full max-w-6xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+        {% for actuator, emoji in [("water_pump", "💧"), ("acid_pump", "🧪"), ("base_pump", "⚗️"), ("exhaust_fan", "🌬")] %}
+        <div class="bg-white p-6 rounded-lg shadow-md text-center">
+            <h2 class="text-xl font-semibold text-gray-800 mb-2">{{ emoji }} {{ actuator.replace("_", " ").title() }}</h2>
+            <input type="range" min="1" max="3" value="1" class="slider w-full mt-2" id="{{ actuator }}_slider">
+            <p class="text-gray-600 mt-2" id="{{ actuator }}_level">Low</p>
+            <button onclick="triggerActuator('{{ actuator }}')" 
+                    class="mt-4 bg-indigo-500 text-white font-semibold py-2 px-6 rounded-lg 
+                           hover:bg-indigo-600 transition duration-300 shadow-md">
+                ▶️ Activate
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        const labels = ["Low", "Medium", "High"];
+        document.querySelectorAll('.slider').forEach(slider => {
+            slider.addEventListener('input', function () {
+                const id = this.id.replace('_slider', '_level');
+                document.getElementById(id).textContent = labels[this.value - 1];
+            });
+        });
+
+        function triggerActuator(actuator) {
+            const slider = document.getElementById(`${actuator}_slider`);
+            const level = parseInt(slider.value);
+
+            fetch('/trigger_actuator', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ actuator: actuator, level: level })
+            })
+            .then(res => res.json())
+            .then(data => alert(data.message || data.error))
+            .catch(error => alert('Error: ' + error));
+        }
+    </script>
+
+</body>
+</html>

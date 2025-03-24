@@ -32,38 +32,21 @@
                        hover:bg-purple-700 transition duration-300 shadow-md">
                 📸 View Image Gallery
             </a>
+
+            <!-- Add this inside your existing flex container where other navigation buttons are -->
+            <a href="/buttons"
+            class="bg-yellow-600 text-black text-lg font-semibold py-2 px-6 rounded-lg 
+                hover:bg-yellow-700 transition duration-300 shadow-md">
+            ⚙️ Control Actuators
+            </a>
         </div>
         
-        <!-- ✅ Add manual capture button here -->
+        <!-- ✅ Manual capture button here -->
         <div class="flex flex-wrap justify-center gap-4 mb-6">
             <button onclick="triggerManualCapture()"
                 class="bg-yellow-500 text-black text-lg font-semibold py-2 px-6 rounded-lg 
                        hover:bg-yellow-600 transition duration-300 shadow-md">
                 📸 Take Picture
-            </button>
-        
-            <button onclick="triggerWaterPump()"
-                class="bg-blue-400 text-black text-lg font-semibold py-2 px-6 rounded-lg 
-                       hover:bg-blue-500 transition duration-300 shadow-md">
-                💧 Turn On Water Pump
-            </button>
-        
-            <button onclick="triggerAcidPump()"
-                class="bg-red-400 text-black text-lg font-semibold py-2 px-6 rounded-lg 
-                       hover:bg-red-500 transition duration-300 shadow-md">
-                🧪 Turn On Acid Pump
-            </button>
-        
-            <button onclick="triggerBasePump()"
-                class="bg-green-400 text-black text-lg font-semibold py-2 px-6 rounded-lg 
-                       hover:bg-green-500 transition duration-300 shadow-md">
-                ⚗️ Turn On Base Pump
-            </button>
-        
-            <button onclick="triggerExhaustFan()"
-                class="bg-gray-400 text-black text-lg font-semibold py-2 px-6 rounded-lg 
-                       hover:bg-gray-500 transition duration-300 shadow-md">
-                🌬 Turn On Exhaust Fan
             </button>
         </div>
         

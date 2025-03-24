@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, request, send_file, render_template_string
+from flask import Flask, render_template, jsonify, request, send_file, render_template_string, session, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 import io
 import mysql.connector
@@ -45,6 +45,27 @@ class ImageData(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     image = db.Column(db.LargeBinary, nullable=False)  # BLOB storage for image data
     timestamp = db.Column(db.TIMESTAMP, server_default=db.func.current_timestamp(), nullable=False)
+
+# In-memory storage for actuator command
+latest_actuator_command = {
+    "actuator": None,
+    "duration": 0
+}
+
+# Secret key for session management
+app.secret_key = 'your_super_secret_key_here'  # Replace this with something strong
+
+# Login page
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        password = request.form.get('password')
+        if password == "400321812":
+            session['authenticated'] = True
+            return redirect(url_for('buttons_page'))
+        else:
+            return render_template("login.html", error="❌ Incorrect password. Try again.")
+    return render_template("login.html")
 
 # Route to fetch and display image
 @app.route('/image/<int:image_id>')
@@ -112,6 +133,65 @@ def gallery():
     except Exception as e:
         return f"❌ Error retrieving images: {str(e)}"
 
+@app.route('/buttons')
+def buttons_page():
+    if not session.get('authenticated'):
+        return redirect(url_for('login'))
+
+    # Render the page first, then clear session
+    response = render_template("buttons.html")
+
+    # Clear session after rendering
+    session.pop('authenticated', None)
+
+    return response
+
+
+@app.route('/logout')
+def logout():
+    session.pop('authenticated', None)
+    return redirect(url_for('login'))
+
+@app.route('/get_actuator_command', methods=['GET'])
+def get_actuator_command():
+    global latest_actuator_command
+
+    if latest_actuator_command["actuator"] is None:
+        return jsonify({"actuator": "", "duration": 0})
+
+    # Return the latest command and reset it so it's only run once
+    command = latest_actuator_command.copy()
+    latest_actuator_command["actuator"] = None
+    latest_actuator_command["duration"] = 0
+
+    return jsonify(command)
+
+
+@app.route('/trigger_actuator', methods=['POST'])
+def trigger_actuator():
+    global latest_actuator_command
+    try:
+        data = request.get_json()
+        actuator = data.get("actuator")
+        level = int(data.get("level"))
+
+        if actuator not in ["water_pump", "acid_pump", "base_pump", "exhaust_fan"]:
+            return jsonify({"error": "Invalid actuator type"}), 400
+
+        # Duration mapping
+        duration_map = {1: 10, 2: 20, 3: 30}
+        duration = duration_map.get(level, 10)
+
+        # Save the latest command
+        latest_actuator_command["actuator"] = actuator
+        latest_actuator_command["duration"] = duration
+
+        print(f"🔧 Command saved: {actuator} for {duration} seconds")
+
+        return jsonify({"message": f"{actuator.replace('_', ' ').title()} triggered for {duration} seconds ✅"})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == '__main__':
