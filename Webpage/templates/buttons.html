@@ -39,6 +39,8 @@
 
     <script>
         const labels = ["Low", "Medium", "High"];
+        const durations = [10, 20, 30];  // in seconds
+
         document.querySelectorAll('.slider').forEach(slider => {
             slider.addEventListener('input', function () {
                 const id = this.id.replace('_slider', '_level');
@@ -49,11 +51,12 @@
         function triggerActuator(actuator) {
             const slider = document.getElementById(`${actuator}_slider`);
             const level = parseInt(slider.value);
+            const duration = durations[level - 1];
 
             fetch('/trigger_actuator', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ actuator: actuator, level: level })
+                body: JSON.stringify({ actuator: actuator, duration: duration })
             })
             .then(res => res.json())
             .then(data => alert(data.message || data.error))

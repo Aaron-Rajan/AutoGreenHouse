@@ -3,6 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 import io
 import mysql.connector
 from PIL import Image
+from sqlalchemy import text
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -52,6 +54,11 @@ latest_actuator_command = {
     "duration": 0
 }
 
+class CaptureFlag(db.Model):
+     __tablename__ = 'capture_flags'
+     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+     capture_trigger = db.Column(db.Boolean, default=False)
+
 # Secret key for session management
 app.secret_key = 'your_super_secret_key_here'  # Replace this with something strong
 
@@ -98,6 +105,21 @@ def index():
         return render_template("index.html", sensor_data=latest_sensor_data, image_url=image_url)
     except Exception as e:
         return f"❌ Error retrieving data: {str(e)}"
+    
+@app.route('/upload_image', methods=['POST'])
+def upload_image():
+    try:
+        image_data = request.data
+        cursor = mysql_db.cursor()
+        sql = "INSERT INTO images (image) VALUES (%s)"
+        cursor.execute(sql, (image_data,))
+        mysql_db.commit()
+        cursor.close()
+
+        return jsonify({"message": "Image uploaded successfully"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
     
 # Route to display all collected sensor data in a table
 @app.route('/data')
@@ -146,6 +168,41 @@ def buttons_page():
 
     return response
 
+@app.route('/get_latest_command', methods=['GET'])
+def get_latest_command():
+    command = db.session.execute(
+        text("""
+            SELECT * FROM actuator_commands 
+            WHERE executed = FALSE 
+            ORDER BY timestamp DESC 
+            LIMIT 1
+        """)
+    ).fetchone()
+
+    if command:
+        db.session.execute(
+            text("UPDATE actuator_commands SET executed = TRUE WHERE id = :id"),
+            {"id": command.id}
+        )
+        db.session.commit()
+        return jsonify({
+            "actuator": command.actuator_type,
+            "duration": command.duration
+        })
+
+    return jsonify({"actuator": "", "duration": 0})
+
+@app.route('/get_data', methods=['GET'])
+def get_data():
+    latest = db.session.query(SensorData).order_by(SensorData.timestamp.desc()).first()
+    if latest:
+        return jsonify({
+            "moisture": latest.moisture,
+            "temperature": latest.temperature,
+            "pH": latest.pH
+        })
+    return jsonify({"moisture": 0, "temperature": 0, "pH": 7})
+
 
 @app.route('/logout')
 def logout():
@@ -166,33 +223,58 @@ def get_actuator_command():
 
     return jsonify(command)
 
-
-@app.route('/trigger_actuator', methods=['POST'])
-def trigger_actuator():
-    global latest_actuator_command
+@app.route('/trigger_capture', methods=['POST'])
+def trigger_capture():
     try:
-        data = request.get_json()
-        actuator = data.get("actuator")
-        level = int(data.get("level"))
-
-        if actuator not in ["water_pump", "acid_pump", "base_pump", "exhaust_fan"]:
-            return jsonify({"error": "Invalid actuator type"}), 400
-
-        # Duration mapping
-        duration_map = {1: 10, 2: 20, 3: 30}
-        duration = duration_map.get(level, 10)
-
-        # Save the latest command
-        latest_actuator_command["actuator"] = actuator
-        latest_actuator_command["duration"] = duration
-
-        print(f"🔧 Command saved: {actuator} for {duration} seconds")
-
-        return jsonify({"message": f"{actuator.replace('_', ' ').title()} triggered for {duration} seconds ✅"})
-
+        # Set trigger flag in the database
+        flag = CaptureFlag.query.first()
+        if not flag:
+            flag = CaptureFlag(trigger=True)
+            db.session.add(flag)
+        else:
+            flag.capture_trigger = True
+        db.session.commit()
+        
+        return jsonify({"message": "Capture flag set!"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+     
+@app.route('/should_capture', methods=['GET'])
+def should_capture():
+    try:
+        flag = CaptureFlag.query.first()
+        if flag and flag.capture_trigger:
+            # Reset flag after capture
+            flag.capture_trigger = False
+            db.session.commit()
+            return jsonify({"capture": True})
+        
+        return jsonify({"capture": False})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/trigger_actuator', methods=['POST'])
+def trigger_actuator():
+    data = request.get_json()
+    actuator = data.get("actuator")
+    duration = data.get("duration")
 
+    if actuator not in ["water_pump", "acid_pump", "base_pump", "exhaust_fan"]:
+        return jsonify({"error": "Invalid actuator type"}), 400
+
+    try:
+        db.session.execute(
+            text("""
+                INSERT INTO actuator_commands (actuator_type, duration, executed)
+                VALUES (:actuator, :duration, FALSE)
+            """),
+            {"actuator": actuator, "duration": duration}
+        )
+        db.session.commit()
+        return jsonify({"message": f"{actuator} command created ✅"}), 200
+
+    except Exception as e:
+        return jsonify({"error": f"Database error: {str(e)}"}), 500
+    
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000, debug=True)
