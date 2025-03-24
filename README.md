@@ -3,6 +3,13 @@
 ## 📌 Project Overview
 The **Self-Sustaining Intelligent Greenhouse (SSIG)** is an automated system designed to monitor and regulate environmental conditions to optimize plant growth. The system collects real-time data from various sensors configured with an **ESP32 microcontroller**, stores it in an **AWS-hosted MySQL database**, and provides a **Flask-based web dashboard** for visualization. 
 
+🌐 **Live Public Dashboard**:  
+You can access the deployed system through the following public domain:  
+**[http://15.222.245.211:5000/](http://15.222.245.211:5000/)**  
+
+🖥️ **Hosting Information**:  
+The dashboard and backend server are hosted on an **AWS EC2 Ubuntu instance**, which runs the Flask application and connects securely to the AWS RDS MySQL database for data storage and actuator control logic.
+
 ## 🚀 Features
 - **Real-Time Sensor Monitoring**: Tracks temperature, humidity, CO2 levels, TVOC, moisture, and pH.
 - **Flask-Based Web Dashboard**: Displays the latest sensor data and images.
