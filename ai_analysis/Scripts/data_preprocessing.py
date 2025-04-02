@@ -20,18 +20,18 @@ def load_and_preprocess_data(lookback=24):
     #lookback = int(lookback)  # Ensure `lookback` is an integer
     lookback = int(os.getenv("LOOKBACK", 24))
 
-    logger.info("🔄 Connecting to AWS MySQL...")
+    logger.info("LOADING: Connecting to AWS MySQL...")
 
     if not DB_PASSWORD:
-        raise ValueError("❌ ERROR: Database password not set! Use `set DB_PASSWORD=your_actual_password` (Windows) or `export DB_PASSWORD='your_actual_password'` (Mac/Linux).")
+        raise ValueError("ERROR: Database password not set! Use `set DB_PASSWORD=your_actual_password` (Windows) or `export DB_PASSWORD='your_actual_password'` (Mac/Linux).")
 
-    print(f"✅ DB_PASSWORD Loaded.")  # Debugging
+    print(f"SUCCESS: DB_PASSWORD Loaded.")  # Debugging
 
     # Connect to AWS MySQL using `mysql.connector`
     conn = mysql.connector.connect(
         host=DB_HOST,
         user=DB_USER,
-        password=DB_PASSWORD,  # ✅ Ensure password is passed
+        password=DB_PASSWORD,  # Ensure password is passed
         database=DB_NAME
     )
 
@@ -45,7 +45,7 @@ def load_and_preprocess_data(lookback=24):
 
     # Close the MySQL connection
     conn.close()
-    logger.info("✅ Data fetched successfully!")
+    logger.info("SUCCESS: Data fetched successfully!")
 
 
     # Convert timestamp to datetime and set as index
@@ -58,7 +58,7 @@ def load_and_preprocess_data(lookback=24):
 
 
     # Debugging: Show raw data
-    logger.info("🔹 Raw Data from MySQL:")
+    logger.info("\nRaw Data from MySQL:")
     logger.info(df.head(10))
 
     # Drop invalid temp/pH values before scaling
@@ -71,7 +71,7 @@ def load_and_preprocess_data(lookback=24):
     df = df.clip(lower=0)  # Replace negative values with 0
 
     # Debugging: Show cleaned data
-    logger.info("🔹 Cleaned Data (Before Normalization):")
+    logger.info("\nCleaned Data (Before Normalization):")
     logger.info(df.head(10))
 
 
@@ -80,8 +80,8 @@ def load_and_preprocess_data(lookback=24):
     scaled_data = scaler.fit_transform(df)
 
     # Debug: Check min/max values before and after scaling
-    print(f"🔹 Raw Data Min: {df.min().values}, Max: {df.max().values}")
-    print(f"🔹 Scaled Data Min: {scaled_data.min(axis=0)}, Max: {scaled_data.max(axis=0)}")
+    print(f"\nRaw Data Min: {df.min().values}, Max: {df.max().values}")
+    print(f"\nScaled Data Min: {scaled_data.min(axis=0)}, Max: {scaled_data.max(axis=0)}")
 
     # Convert data into sequences for LSTM
     def create_sequences(data, lookback):
@@ -97,12 +97,12 @@ def load_and_preprocess_data(lookback=24):
     # Split into training (80%) and testing (20%) sets
     split = int(len(X) * 0.8)
     
-    logger.info(f"✅ Data Preprocessing Complete! Train Samples: {len(X[:split])}, Test Samples: {len(X[split:])}")
+    logger.info(f"\nSUCCESS: Data Preprocessing Complete! Train Samples: {len(X[:split])}, Test Samples: {len(X[split:])}")
 
     return X[:split], X[split:], y[:split], y[split:], scaler
 
 # Example usage
 if __name__ == "__main__":
     X_train, X_test, y_train, y_test, scaler = load_and_preprocess_data()
-    logger.info("🔹 Sample Training Data (After Normalization):")
+    logger.info("\nSample Training Data (After Normalization):")
     logger.info(X_train[:5])  # Print first 5 processed samples
