@@ -32,11 +32,6 @@ threshold_model = build_threshold_lstm()
 early_stopping = EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
 checkpoint = ModelCheckpoint("../models/adaptive_threshold_model.keras", save_best_only=True, monitor="val_loss", mode="min")
 
-# Debugging
-print("🧪 y_train Min:", y_train.min(axis=0))
-print("🧪 y_train Max:", y_train.max(axis=0))
-
-
 # Train Model
 history = threshold_model.fit(
     X_train, y_train,
@@ -53,10 +48,10 @@ threshold_model.save("../models/adaptive_threshold_model.keras")
 with open("../models/threshold_training_history.json", "w") as f:
     json.dump(history.history, f)
 
-print("✅ Adaptive Threshold Model Training Complete. Model Saved.")
+print("\nSUCCESS: Adaptive Threshold Model Training Complete. Model Saved.")
 
 import joblib
 
 # Save scaler to disk
 joblib.dump(scaler, "../models/scaler.pkl")
-print("✅ Scaler saved to '../models/scaler.pkl'")
+print("\nSUCCESS: Scaler saved to '../models/scaler.pkl'")

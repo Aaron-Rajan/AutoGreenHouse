@@ -40,15 +40,15 @@ def analyze_predictions(actual, predicted, thresholds):
         msg = f"Actual: {actual_vals}, Predicted: {predicted_vals}, AI Thresholds: {threshold_vals}"
 
         if moisture < th_moisture:
-            msg += " | ⚠️ Moisture Below AI Threshold!"
+            msg += " | Moisture Below AI Threshold!"
 
         if temp > th_temp:
-            msg += " | 🌡 Temp Above AI Threshold!"
+            msg += " | Temp Above AI Threshold!"
 
         if ph < th_ph:
-            msg += " | ⚠️ pH Below AI Threshold!"
+            msg += " | pH Below AI Threshold!"
         elif ph > th_ph + 1:  # +1 buffer
-            msg += " | ⚠️ pH Above AI Threshold!"
+            msg += " | pH Above AI Threshold!"
 
         results.append(msg)
 

@@ -13,7 +13,7 @@ import time
 import mysql.connector
 from tensorflow.keras.models import load_model
 import joblib
-from datetime import datetime  # 🆕 For timestamp
+from datetime import datetime  # For timestamp
 from data_preprocessing import DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, TABLE_NAME
 
 # =============================
@@ -56,9 +56,9 @@ def insert_prediction_to_db(prediction):
         cursor.close()
         conn.close()
 
-        print("AI Prediction inserted into database.")
+        print("\nAI Prediction inserted into database.")
     except Exception as e:
-        print("Failed to insert AI prediction:", e)
+        print("\nFailed to insert AI prediction:", e)
 
 # =============================
 # Function to retrieve latest 24 sensor entries from the database
@@ -94,7 +94,7 @@ def get_live_sensor_data():
     df.dropna(inplace=True)
     df = df.iloc[::-1]  # Optional: Reverse to chronological order
 
-    print("📅 Latest timestamp in DataFrame:", df['timestamp'].max())
+    print("\nLatest timestamp in DataFrame:", df['timestamp'].max())
 
     return df
 
@@ -102,45 +102,45 @@ def get_live_sensor_data():
 # Real-time prediction loop
 # =============================
 while True:
-    # Step 1: Fetch the latest 24 sensor records
+    # Fetch the latest 24 sensor records
     df = get_live_sensor_data()
 
-    # Step 2: Extract the most recent timestamp in the fetched data
+    # Extract the most recent timestamp in the fetched data
     current_latest_time = df['timestamp'].iloc[-1]
 
-    # Step 3: Check if new data has been inserted
+    # Check if new data has been inserted
     if current_latest_time != last_timestamp:
         # Update last seen timestamp
         last_timestamp = current_latest_time
 
-        # Step 4: Extract features in the same order used during training
+        # Extract features in the same order used during training
         features = ['co2', 'tvoc', 'moisture', 'temperature', 'humidity', 'pH']
         input_data = df[features].values.astype(np.float32)
 
-        # Step 5: Normalize the input using the original training scaler
+        # Normalize the input using the original training scaler
         scaled_input = scaler.transform(input_data)
 
-        # Step 6: Reshape to match LSTM input shape: (batch_size, time_steps, features)
+        # Reshape to match LSTM input shape: (batch_size, time_steps, features)
         reshaped = np.expand_dims(scaled_input, axis=0)  # shape = (1, 24, 6)
 
-        # Step 7: Make prediction for the next hour's environmental conditions
+        # Make prediction for the next hour's environmental conditions
         prediction = model.predict(reshaped)
 
-        # Step 8: Inverse-transform the result back to real-world scale
+        # Inverse-transform the result back to real-world scale
         result = scaler.inverse_transform(prediction)[0]
 
-        # Step 9: Display the prediction
+        # Display the prediction
         labels = ['CO2 (ppm)', 'TVOC (ppb)', 'Moisture (%)', 'Temp (°C)', 'Humidity (%)', 'pH']
         print("\nPredicted Next Hour Conditions:")
         for label, val in zip(labels, result):
             print(f"   - {label}: {val:.2f}")
 
-        # Step 9.5: Insert the prediction into ai_predictions table
+        # Insert the prediction into ai_predictions table
         insert_prediction_to_db(result)
 
     else:
         # No new sensor data inserted yet
-        print("⏳ No new data yet... waiting")
+        print("\nNo new data yet... waiting")
 
     # Step 10: Wait before rechecking (sync with 15-min sensor update cycle)
     time.sleep(30)
