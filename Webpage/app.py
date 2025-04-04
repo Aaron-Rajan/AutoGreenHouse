@@ -1,12 +1,17 @@
-from flask import Flask, render_template, jsonify, request, send_file, render_template_string, session, redirect, url_for
+from flask import Flask, render_template, jsonify, request, send_file, render_template_string, session, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 import io
 import mysql.connector
 from PIL import Image
 from sqlalchemy import text
 from datetime import datetime
+import secrets
 
 app = Flask(__name__)
+
+secrets.token_hex(32)
+app.secret_key = "a7fdb9328d9fa1ce0e0ba0d5b29a23fd9c2f8e469cb17bcfae3d4b1a9a4cc2b1"
+
 
 # AWS RDS MySQL Database Configuration
 DB_USER = "admin"
@@ -66,12 +71,16 @@ app.secret_key = 'your_super_secret_key_here'  # Replace this with something str
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
+        next_page = request.form.get('next') or 'latest_prediction'
         password = request.form.get('password')
+
         if password == "400321812":
             session['authenticated'] = True
-            return redirect(url_for('buttons_page'))
+            return redirect(url_for(next_page))
         else:
             return render_template("login.html", error="❌ Incorrect password. Try again.")
+    
+    # GET request (show login form)
     return render_template("login.html")
 
 # Route to fetch and display image
@@ -90,6 +99,10 @@ def get_image(image_id):
 # Homepage Route (Displays Latest Sensor Data and Image)
 @app.route('/')
 def index():
+
+    # Auto-logout on index refresh
+    session.pop('authenticated', None)
+
     try:
         # Fetch the most recent sensor data
         latest_sensor_data = db.session.query(SensorData).order_by(SensorData.timestamp.desc()).first()
@@ -158,13 +171,13 @@ def gallery():
 @app.route('/buttons')
 def buttons_page():
     if not session.get('authenticated'):
-        return redirect(url_for('login'))
+        return redirect(url_for('login', next='buttons_page'))
 
     # Render the page first, then clear session
     response = render_template("buttons.html")
 
-    # Clear session after rendering
-    session.pop('authenticated', None)
+    # # Clear session after rendering
+    # session.pop('authenticated', None)
 
     return response
 
@@ -276,5 +289,85 @@ def trigger_actuator():
     except Exception as e:
         return jsonify({"error": f"Database error: {str(e)}"}), 500
     
+@app.route('/predictions')
+def latest_prediction():
+    # Require login
+    if not session.get('authenticated'):
+        return redirect(url_for('login', next='latest_prediction'))
+
+    try:
+        cursor = mysql_db.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT * FROM ai_predictions
+            ORDER BY timestamp DESC
+            LIMIT 1
+        """)
+        latest_row = cursor.fetchone()
+        cursor.close()
+
+        if not latest_row:
+            return render_template("predictions.html", message="⚠ No prediction data found.", prediction=None)
+
+        return render_template("predictions.html", prediction=latest_row)
+
+    except Exception as e:
+        return f"❌ Error retrieving prediction: {str(e)}", 500
+
+
+@app.route('/set_thresholds', methods=['POST'])
+def set_thresholds():
+    try:
+        # Get values from the form
+        co2 = request.form.get('co2')
+        tvoc = request.form.get('tvoc')
+        moisture = request.form.get('moisture')
+        temperature = request.form.get('temperature')
+        humidity = request.form.get('humidity')
+        ph = request.form.get('ph')
+
+        # Insert into thresholds table
+        cursor = mysql_db.cursor()
+        sql = """
+            INSERT INTO thresholds (co2, tvoc, moisture, temperature, humidity, pH)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """
+        cursor.execute(sql, (co2, tvoc, moisture, temperature, humidity, ph))
+        mysql_db.commit()
+        cursor.close()
+
+        flash("✅ Thresholds successfully sent!", "success")
+        return redirect(url_for('latest_prediction'))
+        # return redirect(url_for('latest_prediction'))  # redirect to /predictions
+    except Exception as e:
+        return f"❌ Error saving thresholds: {str(e)}", 500
+
+@app.route('/get_thresholds', methods=['GET'])
+def get_thresholds():
+    try:
+        cursor = mysql_db.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT * FROM thresholds
+            ORDER BY timestamp DESC
+            LIMIT 1
+        """)
+        latest = cursor.fetchone()
+        cursor.close()
+
+        if latest:
+            return jsonify({
+                "co2": latest.get("co2"),
+                "tvoc": latest.get("tvoc"),
+                "moisture": latest.get("moisture"),
+                "temperature": latest.get("temperature"),
+                "humidity": latest.get("humidity"),
+                "pH": latest.get("pH"),
+                "timestamp": latest.get("timestamp").isoformat() if latest.get("timestamp") else None
+            })
+        else:
+            return jsonify({"error": "No threshold data found"}), 404
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000, debug=True)
