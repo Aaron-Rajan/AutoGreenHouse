@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plant Health Overview</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center p-6">
+
+    <!-- Header Section -->
+    <div class="w-full max-w-6xl bg-white p-6 rounded-lg shadow-md text-center">
+        <h1 class="text-3xl font-bold text-green-700">🌿 Plant Health Analysis</h1>
+        <p class="text-gray-600 mt-2">Visual insights and health status of each plant from the latest camera capture.</p>
+    </div>
+
+    <!-- Back to Dashboard Button -->
+    <a href="/" 
+        class="mt-4 inline-block bg-blue-600 text-white text-lg font-semibold py-3 px-8 rounded-lg 
+               hover:bg-blue-700 transition duration-300 shadow-md">
+        ⬅ Back to Dashboard
+    </a>
+
+    {% if plant_health %}
+    <!-- Image Container -->
+    <div class="w-full max-w-6xl bg-white p-6 rounded-lg shadow-md mt-6 text-center">
+        <img src="data:image/jpeg;base64,{{ plant_health.image | b64encode }}" 
+             alt="Plant Health Image" class="w-full rounded-lg shadow-md">
+    </div>
+
+    <!-- Health Score Cards -->
+    <div class="w-full max-w-6xl bg-white p-6 rounded-lg shadow-md mt-6">
+        <div class="flex flex-col md:flex-row justify-around items-center gap-4">
+            <!-- Basil -->
+            <div class="border rounded-lg shadow-md p-4 w-full md:w-1/3 text-center">
+                <h3 class="text-xl font-bold text-green-700">🌱 Basil</h3>
+                <p class="text-lg">
+                    Health Score: 
+                    <span class="
+                        {% if plant_health.basil_health >= 85 %} text-green-600 
+                        {% elif plant_health.basil_health >= 70 %} text-yellow-500 
+                        {% else %} text-red-500 
+                        {% endif %}
+                        font-semibold">
+                        {{ plant_health.basil_health }}%
+                    </span>
+                </p>
+            </div>
+
+            <!-- Parsley -->
+            <div class="border rounded-lg shadow-md p-4 w-full md:w-1/3 text-center">
+                <h3 class="text-xl font-bold text-blue-600">🍃 Parsley</h3>
+                <p class="text-lg">
+                    Health Score: 
+                    <span class="
+                        {% if plant_health.parsley_health >= 85 %} text-green-600 
+                        {% elif plant_health.parsley_health >= 70 %} text-yellow-500 
+                        {% else %} text-red-500 
+                        {% endif %}
+                        font-semibold">
+                        {{ plant_health.parsley_health }}%
+                    </span>
+                </p>
+            </div>
+
+            <!-- Rosemary/Thyme -->
+            <div class="border rounded-lg shadow-md p-4 w-full md:w-1/3 text-center">
+                <h3 class="text-xl font-bold text-pink-600">🌸 Rosemary/Thyme</h3>
+                <p class="text-lg">
+                    Health Score: 
+                    <span class="
+                        {% if plant_health.rosemary_thyme_health >= 85 %} text-green-600 
+                        {% elif plant_health.rosemary_thyme_health >= 70 %} text-yellow-500 
+                        {% else %} text-red-500 
+                        {% endif %}
+                        font-semibold">
+                        {{ plant_health.rosemary_thyme_health }}%
+                    </span>
+                </p>
+            </div>
+        </div>
+
+        <!-- Timestamp -->
+        <p class="text-sm text-center text-gray-500 mt-4">📅 Captured on: {{ plant_health.timestamp }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Plant Health Graphs Section -->
+    <div class="w-full max-w-6xl mt-8 bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-2xl font-bold text-center text-gray-800 mb-4">📈 Plant Health Over Time</h2>
+
+        <!-- Basil Graph -->
+        <div class="mb-6">
+            <h3 class="text-green-700 text-xl font-semibold mb-2 text-center">🌱 Basil</h3>
+            <img src="data:image/png;base64,{{ basil_graph }}" alt="Basil Health Graph" class="w-full rounded-lg shadow-md">
+        </div>
+
+        <!-- Parsley Graph -->
+        <div class="mb-6">
+            <h3 class="text-blue-700 text-xl font-semibold mb-2 text-center">🍃 Parsley</h3>
+            <img src="data:image/png;base64,{{ parsley_graph }}" alt="Parsley Health Graph" class="w-full rounded-lg shadow-md">
+        </div>
+
+        <!-- Rosemary/Thyme Graph -->
+        <div class="mb-6">
+            <h3 class="text-purple-700 text-xl font-semibold mb-2 text-center">🌸 Rosemary/Thyme</h3>
+            <img src="data:image/png;base64,{{ rosemary_graph }}" alt="Rosemary/Thyme Health Graph" class="w-full rounded-lg shadow-md">
+        </div>
+    </div>
+
+
+</body>
+</html>

@@ -6,12 +6,25 @@ from PIL import Image
 from sqlalchemy import text
 from datetime import datetime
 import secrets
+import base64
+import pandas as pd
+import matplotlib
+matplotlib.use('Agg')  # Set the non-GUI backend
+
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 
 app = Flask(__name__)
 
 secrets.token_hex(32)
 app.secret_key = "a7fdb9328d9fa1ce0e0ba0d5b29a23fd9c2f8e469cb17bcfae3d4b1a9a4cc2b1"
 
+# Register custom filter
+@app.template_filter('b64encode')
+def b64encode_filter(data):
+    if data:
+        return base64.b64encode(data).decode('utf-8')
+    return ''
 
 # AWS RDS MySQL Database Configuration
 DB_USER = "admin"
@@ -52,6 +65,16 @@ class ImageData(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     image = db.Column(db.LargeBinary, nullable=False)  # BLOB storage for image data
     timestamp = db.Column(db.TIMESTAMP, server_default=db.func.current_timestamp(), nullable=False)
+
+class PlantHealth(db.Model):
+    __tablename__ = 'plant_health_images'  # Match your actual DB table name
+
+    id = db.Column(db.Integer, primary_key=True)
+    image = db.Column(db.LargeBinary, nullable=False)
+    basil_health = db.Column(db.Float)
+    parsley_health = db.Column(db.Float)
+    rosemary_thyme_health = db.Column(db.Float)
+    timestamp = db.Column(db.DateTime)
 
 # In-memory storage for actuator command
 latest_actuator_command = {
@@ -368,6 +391,61 @@ def get_thresholds():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+def generate_plot(df, plant_column, plant_name, color):
+    fig, ax = plt.subplots(figsize=(8, 4))
+    
+    ax.plot(df['timestamp'], df[plant_column], marker='o', linewidth=2, color=color, label=plant_name)
+    
+    ax.set_title(f"{plant_name} Health Over Time", fontsize=14, fontweight='bold')
+    ax.set_xlabel("Time", fontsize=12)
+    ax.set_ylabel("Health Score (%)", fontsize=12)
+    
+    ax.set_ylim(0, 100)
+    ax.legend()
+    ax.grid(visible=True, linestyle='--', alpha=0.6)
+
+    # Format x-axis date labels
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%b %d\n%Y'))
+    plt.xticks(rotation=45, ha='right', fontsize=10)
+    plt.yticks(fontsize=10)
+
+    # Tight layout to prevent clipping
+    plt.tight_layout()
+
+    # Encode plot to base64
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', dpi=150)
+    buf.seek(0)
+    encoded = base64.b64encode(buf.read()).decode('utf-8')
+    buf.close()
+    plt.close(fig)
+    
+    return encoded
+
+
+@app.route("/health")
+def health():
+    latest_health = db.session.query(PlantHealth).order_by(PlantHealth.timestamp.desc()).first()
+    health_records = db.session.query(PlantHealth).order_by(PlantHealth.timestamp).all()
+
+    df = pd.DataFrame([{
+        "timestamp": h.timestamp,
+        "basil_health": h.basil_health,
+        "parsley_health": h.parsley_health,
+        "rosemary_thyme_health": h.rosemary_thyme_health
+    } for h in health_records])
+
+    # Reuse the generate_plot function as above
+    basil_graph = generate_plot(df, "basil_health", "Basil", "green")
+    parsley_graph = generate_plot(df, "parsley_health", "Parsley", "blue")
+    rosemary_graph = generate_plot(df, "rosemary_thyme_health", "Rosemary/Thyme", "purple")
+
+    return render_template("health.html", plant_health=latest_health,
+                           basil_graph=basil_graph,
+                           parsley_graph=parsley_graph,
+                           rosemary_graph=rosemary_graph)
+
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000, debug=True)
