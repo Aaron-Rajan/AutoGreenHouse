@@ -37,7 +37,7 @@ def analyze_predictions(actual, predicted, thresholds):
         temp, moisture, ph = predicted_vals[:3]
         th_temp, th_moisture, th_ph = threshold_vals[:3]
 
-        msg = f"Actual: {actual_vals}, Predicted: {predicted_vals}, AI Thresholds: {threshold_vals}"
+        msg = f"\nActual: {actual_vals}, Predicted: {predicted_vals}, \nAI Thresholds: {threshold_vals}\n"
 
         if moisture < th_moisture:
             msg += " | Moisture Below AI Threshold!"

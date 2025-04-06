@@ -56,7 +56,7 @@ def insert_prediction_to_db(prediction):
         cursor.close()
         conn.close()
 
-        print("\nAI Prediction inserted into database.")
+        print("\nAI Prediction inserted into database.\n")
     except Exception as e:
         print("\nFailed to insert AI prediction:", e)
 
@@ -142,5 +142,5 @@ while True:
         # No new sensor data inserted yet
         print("\nNo new data yet... waiting")
 
-    # Step 10: Wait before rechecking (sync with 15-min sensor update cycle)
+    # Wait before rechecking (sync with 15-min sensor update cycle)
     time.sleep(30)
