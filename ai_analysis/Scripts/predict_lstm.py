@@ -1,20 +1,13 @@
-# Adaptive Model
-
 import numpy as np
 from tensorflow.keras.models import load_model
 from data_preprocessing import load_and_preprocess_data
 
-# Load trained models
+# Load trained model
 prediction_model = load_model("../models/adaptive_threshold_model.keras")
-threshold_model = load_model("../models/adaptive_threshold_model.keras")
 
 # Load test data
 file_path = "../Data/greenhouse_sensor_data.csv"
 _, X_test, _, y_test, scaler = load_and_preprocess_data(file_path)
-
-# Get AI-Generated Thresholds for test set
-ai_thresholds = threshold_model.predict(X_test)
-ai_thresholds_rescaled = scaler.inverse_transform(ai_thresholds)
 
 # Make Predictions
 predictions = prediction_model.predict(X_test)
@@ -23,38 +16,76 @@ predictions = prediction_model.predict(X_test)
 predictions_rescaled = scaler.inverse_transform(predictions)
 y_test_rescaled = scaler.inverse_transform(y_test)
 
-# Function to analyze AI-threshold-based predictions
-def analyze_predictions(actual, predicted, thresholds):
+# --------------------------------------------
+# Optimal Values Evaluation 
+# --------------------------------------------
+
+# Averaged ideal ranges across rosemary, oregano, basil, parsley, mint, thyme
+IDEAL_CONDITIONS = {
+    "co2": (300, 600),              # ppm
+    "tvoc": (0, 200),               # ppb
+    "moisture": (30, 60),           # % (root zone moisture)
+    "temperature": (18, 27),        # °C
+    "humidity": (50, 70),           # %
+    "pH": (5.8, 7.0)                # pH range for herbs
+}
+
+def evaluate_against_ideal(values, label="Prediction"):
     """
-    Compare predicted values against AI-generated thresholds.
+    Compare a predicted or sensor value array against ideal conditions for herbs.
     """
-    results = []
-    for i in range(len(actual)):
-        actual_vals = actual[i]
-        predicted_vals = predicted[i]
-        threshold_vals = thresholds[i]
+    metrics = list(IDEAL_CONDITIONS.keys())
+    messages = []
+    for i, key in enumerate(metrics):
+        val = values[i]
+        low, high = IDEAL_CONDITIONS[key]
 
-        temp, moisture, ph = predicted_vals[:3]
-        th_temp, th_moisture, th_ph = threshold_vals[:3]
+        if val < low:
+            messages.append(f"{label} {key.upper()} too LOW ({val:.2f} < {low})")
+        elif val > high:
+            messages.append(f"{label} {key.upper()} too HIGH ({val:.2f} > {high})")
+        else:
+            messages.append(f"{label} {key.upper()} is OPTIMAL ({val:.2f})")
+    return messages
 
-        msg = f"\nActual: {actual_vals}, Predicted: {predicted_vals}, \nAI Thresholds: {threshold_vals}\n"
+def compute_health_score(values):
+    """
+    Compute plant health score (0–100) using softer penalties for minor deviations.
+    """
+    metrics = list(IDEAL_CONDITIONS.keys())
+    total_score = 0
 
-        if moisture < th_moisture:
-            msg += " | Moisture Below AI Threshold!"
+    for i, key in enumerate(metrics):
+        val = values[i]
+        low, high = IDEAL_CONDITIONS[key]
+        center = (low + high) / 2
+        range_width = (high - low) / 2
+        buffer = range_width * 0.5  # Allow a 50% grace margin
 
-        if temp > th_temp:
-            msg += " | Temp Above AI Threshold!"
+        if low <= val <= high:
+            score = 100  # perfect
+        else:
+            # Outside ideal range, apply soft penalty
+            dist_from_boundary = min(abs(val - low), abs(val - high))
+            penalty = min(dist_from_boundary / (range_width + buffer), 1.0)
+            score = max(0, round(100 * (1 - penalty), 2))
 
-        if ph < th_ph:
-            msg += " | pH Below AI Threshold!"
-        elif ph > th_ph + 1:  # +1 buffer
-            msg += " | pH Above AI Threshold!"
+        total_score += score
 
-        results.append(msg)
+    return round(total_score / len(metrics), 2)
 
-    return results
 
-# Print analysis results
-analysis = analyze_predictions(y_test_rescaled, predictions_rescaled, ai_thresholds_rescaled)
-for msg in analysis[:5]:  # Show first 5 samples
-    print(msg)
+# Main Output Loop
+if __name__ == "__main__":
+    print("\n==============================")
+    print("IDEAL CONDITION EVALUATION")
+    print("==============================")
+    for i, pred in enumerate(predictions_rescaled[:5]):
+        print(f"\nSample {i+1}:")
+        evaluation = evaluate_against_ideal(pred, label="Predicted")
+        for msg in evaluation:
+            print(" -", msg)
+
+        # Plant Health Score
+        health_score = compute_health_score(pred)
+        print(f"\n PLANT HEALTH SCORE: {health_score}/100")

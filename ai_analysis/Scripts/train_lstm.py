@@ -8,7 +8,8 @@ from tensorflow.keras import regularizers
 from data_preprocessing import load_and_preprocess_data
 import numpy as np
 import json
-import os
+import joblib
+
 
 # Load preprocessed data
 X_train, X_test, y_train, y_test, scaler = load_and_preprocess_data()
@@ -49,8 +50,6 @@ with open("../models/threshold_training_history.json", "w") as f:
     json.dump(history.history, f)
 
 print("\nSUCCESS: Adaptive Threshold Model Training Complete. Model Saved.")
-
-import joblib
 
 # Save scaler to disk
 joblib.dump(scaler, "../models/scaler.pkl")
