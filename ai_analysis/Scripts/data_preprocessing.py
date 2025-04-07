@@ -10,10 +10,10 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # AWS MySQL Credentials (Secure using environment variables)
-DB_HOST = os.getenv("DB_HOST", "ssigdata.czcwce6iiq8v.ca-central-1.rds.amazonaws.com")
-DB_USER = os.getenv("DB_USER", "admin")
-DB_PASSWORD = os.getenv("DB_PASSWORD")  # Retrieve from environment variable
-DB_NAME = os.getenv("DB_NAME", "ssigdata")
+DB_HOST = "ssigdata.czcwce6iiq8v.ca-central-1.rds.amazonaws.com"
+DB_USER = "admin"
+DB_PASSWORD = "400321812"
+DB_NAME = "ssigdata"
 TABLE_NAME = "ssig_sensor_data"
 
 def load_and_preprocess_data(lookback=24):
