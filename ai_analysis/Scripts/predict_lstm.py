@@ -3,7 +3,7 @@ from tensorflow.keras.models import load_model
 from data_preprocessing import load_and_preprocess_data
 
 # Load trained model
-prediction_model = load_model("../models/adaptive_threshold_model.keras")
+prediction_model = load_model("ai_analysis/models/adaptive_threshold_model.keras")
 
 # Load test data
 file_path = "../Data/greenhouse_sensor_data.csv"
