@@ -9,7 +9,10 @@ import secrets
 import base64
 import pandas as pd
 import matplotlib
-matplotlib.use('Agg')  # Set the non-GUI backend
+matplotlib.use('Agg')  # Set the non-GUI 
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), 'ai_analysis', 'Scripts'))
 
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
@@ -88,7 +91,7 @@ class CaptureFlag(db.Model):
      capture_trigger = db.Column(db.Boolean, default=False)
 
 # Secret key for session management
-app.secret_key = 'your_super_secret_key_here'  # Replace this with something strong
+app.secret_key = 'your_super_secret_key_here'
 
 # Login page
 @app.route('/login', methods=['GET', 'POST'])
@@ -141,7 +144,30 @@ def index():
         return render_template("index.html", sensor_data=latest_sensor_data, image_url=image_url)
     except Exception as e:
         return f"❌ Error retrieving data: {str(e)}"
-    
+
+@app.route('/upload', methods=['POST'])
+def upload_data():
+    data = request.json  # Receive JSON data from ESP32
+    cursor = mysql_db.cursor()
+
+    sql = """INSERT INTO ssig_sensor_data (co2, tvoc, moisture, pH, temperature, humidity) 
+             VALUES (%s, %s, %s, %s, %s, %s)"""
+    values = (data["co2"], data["tvoc"], data["moisture"], data["pH"], data["temperature"], data["humidity"])
+
+    cursor.execute(sql, values)
+    mysql_db.commit()
+    cursor.close()
+
+    # ✅ Call LSTM analysis function
+    try:
+        from deploy_lstm import generate_and_store_prediction
+        generate_and_store_prediction()
+    except Exception as e:
+        print("❌ LSTM analysis failed:", e)
+
+    return jsonify({"message": "Sensor data stored and prediction triggered ✅"}), 201
+
+
 @app.route('/upload_image', methods=['POST'])
 def upload_image():
     try:
@@ -152,7 +178,11 @@ def upload_image():
         mysql_db.commit()
         cursor.close()
 
-        return jsonify({"message": "Image uploaded successfully"}), 200
+        # ✅ Call green_label.py processing function
+        from green_label import main as run_labeling
+        run_labeling()
+
+        return jsonify({"message": "Image uploaded and labeled successfully"}), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -238,7 +268,6 @@ def get_data():
             "pH": latest.pH
         })
     return jsonify({"moisture": 0, "temperature": 0, "pH": 7})
-
 
 @app.route('/logout')
 def logout():
