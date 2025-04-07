@@ -144,16 +144,40 @@
 
             <!-- Suggested AI Thresholds (Display Only) -->
             <div class="flex-1 bg-gray-50 p-6 rounded-lg shadow-inner">
+
+                <!-- ESP32 Set Thresholds (Display Only) -->
+                <div class="flex-1 bg-gray-50 p-6 rounded-lg shadow-inner mb-6">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-4 text-center">📟 ESP32 Current Thresholds</h3>
+                    {% if thresholds %}
+                    <ul class="space-y-3 text-gray-700">
+                        <li>🌊 Moisture: <span class="font-bold text-green-600">{{ thresholds.moisture }}%</span></li>
+                        <li>🌡 Temperature: <span class="font-bold text-green-600">{{ thresholds.temperature }}°C</span></li>
+                        <li>⚗ pH Level: <span class="font-bold text-green-600">{{ thresholds.pH }}</span></li>
+                        <li>💦 Humidity: <span class="font-bold text-green-600">{{ thresholds.humidity }}%</span></li>
+                        <li>🛢 TVOC: <span class="font-bold text-green-600">{{ thresholds.tvoc }} ppb</span></li>
+                        <li>☁ CO2: <span class="font-bold text-green-600">{{ thresholds.co2 }} ppm</span></li>
+                    </ul>
+                    <p class="text-sm text-gray-500 text-center mt-4">*These are the most recently configured thresholds sent to the ESP32.</p>
+                    {% else %}
+                    <p class="text-center text-gray-600">⚠ No threshold values configured yet.</p>
+                    {% endif %}
+                </div>
+
+
                 <h3 class="text-xl font-semibold text-gray-700 mb-4 text-center">💡 Suggested AI Thresholds</h3>
+                {% if optimal %}
                 <ul class="space-y-3 text-gray-700">
-                    <li>🌊 Moisture: <span class="font-bold text-blue-600">52%</span></li>
-                    <li>🌡 Temperature: <span class="font-bold text-blue-600">24.5°C</span></li>
-                    <li>⚗ pH Level: <span class="font-bold text-blue-600">6.8</span></li>
-                    <li>💦 Humidity: <span class="font-bold text-blue-600">60%</span></li>
-                    <li>🛢 TVOC: <span class="font-bold text-blue-600">35 ppb</span></li>
-                    <li>☁ CO2: <span class="font-bold text-blue-600">680 ppm</span></li>
+                    <li>🌊 Moisture: <span class="font-bold text-blue-600">{{ optimal.moisture }}%</span></li>
+                    <li>🌡 Temperature: <span class="font-bold text-blue-600">{{ optimal.temperature }}°C</span></li>
+                    <li>⚗ pH Level: <span class="font-bold text-blue-600">{{ optimal.pH }}</span></li>
+                    <li>💦 Humidity: <span class="font-bold text-blue-600">{{ optimal.humidity }}%</span></li>
+                    <li>🛢 TVOC: <span class="font-bold text-blue-600">{{ optimal.tvoc }} ppb</span></li>
+                    <li>☁ CO2: <span class="font-bold text-blue-600">{{ optimal.co2 }} ppm</span></li>
                 </ul>
                 <p class="text-sm text-gray-500 text-center mt-4">*AI-generated values based on environmental conditions.</p>
+                {% else %}
+                <p class="text-center text-gray-600">⚠ No AI thresholds available.</p>
+                {% endif %}
             </div>
         </div>
     </div>

@@ -349,22 +349,42 @@ def latest_prediction():
 
     try:
         cursor = mysql_db.cursor(dictionary=True)
+
+        # Fetch latest AI prediction
         cursor.execute("""
             SELECT * FROM ai_predictions
             ORDER BY timestamp DESC
             LIMIT 1
         """)
-        latest_row = cursor.fetchone()
+        latest_prediction = cursor.fetchone()
+
+        # Fetch latest AI optimal conditions
+        cursor.execute("""
+            SELECT * FROM optimal_conditions
+            ORDER BY timestamp DESC
+            LIMIT 1
+        """)
+        latest_optimal = cursor.fetchone()
+
+        # Fetch latest manual thresholds for ESP32
+        cursor.execute("""
+            SELECT * FROM thresholds
+            ORDER BY timestamp DESC
+            LIMIT 1
+        """)
+        latest_thresholds = cursor.fetchone()
+
         cursor.close()
 
-        if not latest_row:
-            return render_template("predictions.html", message="⚠ No prediction data found.", prediction=None)
-
-        return render_template("predictions.html", prediction=latest_row)
+        return render_template(
+            "predictions.html",
+            prediction=latest_prediction,
+            optimal=latest_optimal,
+            thresholds=latest_thresholds
+        )
 
     except Exception as e:
-        return f"❌ Error retrieving prediction: {str(e)}", 500
-
+        return f"❌ Error retrieving prediction or thresholds: {str(e)}", 500
 
 @app.route('/set_thresholds', methods=['POST'])
 def set_thresholds():
