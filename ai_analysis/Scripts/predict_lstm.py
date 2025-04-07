@@ -1,6 +1,8 @@
 import numpy as np
 from tensorflow.keras.models import load_model
 from data_preprocessing import load_and_preprocess_data
+import mysql.connector
+from datetime import datetime
 
 # Load trained model
 prediction_model = load_model("ai_analysis/models/adaptive_threshold_model.keras")
@@ -89,3 +91,46 @@ if __name__ == "__main__":
         # Plant Health Score
         health_score = compute_health_score(pred)
         print(f"\n PLANT HEALTH SCORE: {health_score}/100")
+
+
+
+# ============================================
+# Store Optimal Values to Database
+# ============================================
+
+def store_optimal_conditions(avg_conditions):
+    try:
+        conn = mysql.connector.connect(
+            host="ssigdata.czcwce6iiq8v.ca-central-1.rds.amazonaws.com",
+            user="admin",
+            password="400321812",  
+            database="ssigdata"
+        )
+        cursor = conn.cursor()
+
+        insert_query = """
+            INSERT INTO optimal_conditions (
+                timestamp, co2, tvoc, moisture, temperature, humidity, pH
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """
+        now = datetime.now()
+        values = (now, *[float(x) for x in avg_conditions])
+        cursor.execute(insert_query, values)
+        conn.commit()
+        cursor.close()
+        conn.close()
+        print("\nOPTIMAL VALUES STORED to MySQL.")
+    except Exception as e:
+        print("\nERROR storing optimal values:", e)
+
+# Compute Average Predicted Optimal Values
+avg_prediction = np.mean(predictions_rescaled, axis=0)
+print("\n==============================")
+print("OPTIMAL CONDITIONS (Averaged)")
+print("==============================")
+labels = ['CO2 (ppm)', 'TVOC (ppb)', 'Moisture (%)', 'Temp (°C)', 'Humidity (%)', 'pH']
+for label, val in zip(labels, avg_prediction):
+    print(f"   - {label}: {val:.2f}")
+
+# Store into DB
+store_optimal_conditions(avg_prediction)
