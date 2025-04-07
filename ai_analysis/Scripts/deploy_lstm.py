@@ -7,8 +7,8 @@ from datetime import datetime
 from data_preprocessing import DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, TABLE_NAME
 
 # Load model and scaler
-model = load_model("../models/adaptive_threshold_model.keras")
-scaler = joblib.load("../models/scaler.pkl")
+model = model = load_model("ai_analysis/models/adaptive_threshold_model.keras")
+scaler = joblib.load("ai_analysis/models/scaler.pkl")
 
 # Function to insert prediction into ai_predictions
 def insert_prediction_to_db(prediction):
