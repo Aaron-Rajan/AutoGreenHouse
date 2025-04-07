@@ -51,8 +51,8 @@ def load_and_preprocess_data(lookback=24):
     # Convert timestamp to datetime and set as index
     df['timestamp'] = pd.to_datetime(df['timestamp'])
 
-    # Filter: Only keep recent good data
-    df = df[(df['timestamp'] >= '2025-03-24') & (df['timestamp'] <= '2025-04-02')]
+    # A filter to keep all data from March 24 onward, but exclude April 3 (contains faulty sensor data)
+    df = df[(df['timestamp'] >= '2025-03-24') & (df['timestamp'].dt.date != pd.to_datetime('2025-04-03').date())]
 
 
     df.set_index('timestamp', inplace=True)
