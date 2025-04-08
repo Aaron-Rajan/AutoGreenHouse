@@ -5,6 +5,8 @@ from tensorflow.keras.models import load_model
 import joblib
 from datetime import datetime
 from data_preprocessing import DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, TABLE_NAME
+from pytz import timezone
+import pytz
 
 # Load model and scaler
 model = model = load_model("ai_analysis/models/adaptive_threshold_model.keras")
@@ -27,7 +29,8 @@ def insert_prediction_to_db(prediction):
             ) VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
 
-        now = datetime.now()
+        eastern = timezone('US/Eastern')
+        now = datetime.now(pytz.utc).astimezone(eastern)
         values = (now, *[float(x) for x in prediction])
 
         cursor.execute(insert_query, values)

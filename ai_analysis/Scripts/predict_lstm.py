@@ -120,6 +120,7 @@ def store_optimal_conditions(avg_conditions):
         eastern = timezone('US/Eastern')
         now = datetime.now(pytz.utc).astimezone(eastern)
         values = (now, *[float(x) for x in avg_conditions])
+        
         cursor.execute(insert_query, values)
         conn.commit()
         cursor.close()
