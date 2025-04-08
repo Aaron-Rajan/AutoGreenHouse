@@ -3,6 +3,8 @@ from tensorflow.keras.models import load_model
 from data_preprocessing import load_and_preprocess_data
 import mysql.connector
 from datetime import datetime
+from pytz import timezone
+import pytz
 
 # Load trained model
 prediction_model = load_model("ai_analysis/models/adaptive_threshold_model.keras")
@@ -113,7 +115,10 @@ def store_optimal_conditions(avg_conditions):
                 timestamp, co2, tvoc, moisture, temperature, humidity, pH
             ) VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
-        now = datetime.now()
+
+        # Set timezone to EST
+        eastern = timezone('US/Eastern')
+        now = datetime.now(pytz.utc).astimezone(eastern)
         values = (now, *[float(x) for x in avg_conditions])
         cursor.execute(insert_query, values)
         conn.commit()
